@@ -14,75 +14,159 @@ beurt = 1  # 1 voor Team 1, 2 voor Team 2
 team1_score = {"groene_ballen": 0, "rode_ballen": 0, "goed_geraden": 0, "fout_ballen": 0}
 team2_score = {"groene_ballen": 0, "rode_ballen": 0, "goed_geraden": 0, "fout_ballen": 0}
 
-# Bingo-kaarten voor elk team
-bingo_kaart_team1 = [[None for _ in range(4)] for _ in range(4)]
-bingo_kaart_team2 = [[None for _ in range(4)] for _ in range(4)]
+# Bingo-kaarten genereren met even of oneven nummers
+def genereer_bingo_kaart(even=True):
+    if even:
+        nummers = random.sample([i for i in range(2, 100, 2)], 16)  # genoeg even getallen
+    else:
+        nummers = random.sample([i for i in range(1, 100, 2)], 16)  # genoeg oneven getallen
+    kaart = []
+    for i in range(4):
+        rij = []
+        for j in range(4):
+            nummer = nummers[i * 4 + j]
+            rij.append(str(nummer))
+        kaart.append(rij)
+    return kaart
 
-# Ballenbak
-ballenbak = ["groen"] * 3 + ["rood"] * 3 + [str(i) for i in range(1, 21)]  # 3 groene, 3 rode, 20 nummers
+# Pas deze 2 regels onder de functie toe:
+bingo_kaart_team1 = genereer_bingo_kaart(even=True)
+bingo_kaart_team2 = genereer_bingo_kaart(even=False)
+
+# Ballenbakken voor de twee teams
+ballenbak_team1 = []
+ballenbak_team2 = []
+
+# Voeg ballen toe voor team 1 en team 2, afhankelijk van hun bingo-kaarten
+for i in range(4):
+    for j in range(4):
+        ballenbak_team1.append(bingo_kaart_team1[i][j])
+        ballenbak_team2.append(bingo_kaart_team2[i][j])
+
+# Voeg 3 groene en 3 rode ballen toe voor beide teams
+for _ in range(3):
+    ballenbak_team1.append("groen")
+    ballenbak_team1.append("rood")
+    ballenbak_team2.append("groen")
+    ballenbak_team2.append("rood")
 
 print('Welkom bij Lingo')
 
 team1 = input('Hallo Team 1, wat is jullie teamnaam? ').lower()
 team2 = input('Hallo Team 2, wat is jullie teamnaam? ').lower()
 
+# Functie om een woord te splitsen in letters
 def woord_splitter(woord):
-    return list(woord)
+    gesplitst = []
+    for letter in woord:
+        gesplitst.append(letter)
+    return gesplitst
 
+# Functie om de letters van het geraden woord te kleuren
 def kleur_letters(geraden_woord, correct_woord):
-    correct_woord_lijst = list(correct_woord)
-    geraden_woord_lijst = list(geraden_woord)
+    correct_woord_lijst = []
+    for letter in correct_woord:
+        correct_woord_lijst.append(letter)
+
+    geraden_woord_lijst = []
+    for letter in geraden_woord:
+        geraden_woord_lijst.append(letter)
+
     gekleurd_woord = []
 
-    # Eerst markeer we de letters die op de juiste plaats staan (groen)
     for i in range(len(geraden_woord_lijst)):
         if geraden_woord_lijst[i] == correct_woord_lijst[i]:
             gekleurd_woord.append(Fore.GREEN + geraden_woord_lijst[i])
-            correct_woord_lijst[i] = None  # Markeer deze letter als gebruikt
-            geraden_woord_lijst[i] = None  # Markeer deze letter als gebruikt
+            correct_woord_lijst[i] = None
+            geraden_woord_lijst[i] = None
         else:
             gekleurd_woord.append(Fore.RESET + geraden_woord_lijst[i])
 
-    # Daarna markeren we letters die in het woord zitten maar op de verkeerde plaats (geel)
     for i in range(len(geraden_woord_lijst)):
         if geraden_woord_lijst[i] is not None and geraden_woord_lijst[i] in correct_woord_lijst:
             index_in_correct = correct_woord_lijst.index(geraden_woord_lijst[i])
             if correct_woord_lijst[index_in_correct] is not None:
                 gekleurd_woord[i] = Fore.YELLOW + geraden_woord_lijst[i]
-                correct_woord_lijst[index_in_correct] = None  # Markeer deze letter als gebruikt
+                correct_woord_lijst[index_in_correct] = None
 
-    return ''.join(gekleurd_woord)
+    resultaat = ''
+    for letter in gekleurd_woord:
+        resultaat += letter
+    return resultaat
 
-def grabbel_bal():
-    if not ballenbak:  # Als de ballenbak leeg is, stop het spel
-        print(Fore.RED + "De ballenbak is leeg! Het spel is afgelopen.")
-        return None
-    bal = random.choice(ballenbak)
-    ballenbak.remove(bal)  # Verwijder de bal uit de ballenbak
-    return bal
+# Functie om een bal te trekken voor een team
+def grabbel_bal(team):
+    if team == team1:
+        if len(ballenbak_team1) == 0:
+            print(Fore.RED + "De ballenbak van Team 1 is leeg! Het spel is afgelopen.")
+            return None
+        gekozen_index = random.randint(0, len(ballenbak_team1) - 1)
+        bal = ballenbak_team1[gekozen_index]
+        del ballenbak_team1[gekozen_index]
+        return bal
+    elif team == team2:
+        if len(ballenbak_team2) == 0:
+            print(Fore.RED + "De ballenbak van Team 2 is leeg! Het spel is afgelopen.")
+            return None
+        gekozen_index = random.randint(0, len(ballenbak_team2) - 1)
+        bal = ballenbak_team2[gekozen_index]
+        del ballenbak_team2[gekozen_index]
+        return bal
 
+# Functie om de bingo-kaart van een team bij te werken na het trekken van een bal
 def update_bingo_kaart(team, bal):
-    kaart = bingo_kaart_team1 if team == team1 else bingo_kaart_team2
-    vrije_cellen = [(rij, kolom) for rij in range(4) for kolom in range(4) if kaart[rij][kolom] is None]
-    if vrije_cellen:
-        rij, kolom = random.choice(vrije_cellen)
-        kaart[rij][kolom] = bal
+    if team == team1:
+        kaart = bingo_kaart_team1
+    else:
+        kaart = bingo_kaart_team2
 
+    for i in range(4):
+        for j in range(4):
+            if kaart[i][j] == str(bal):
+                kaart[i][j] = Fore.CYAN + str(bal) + Style.RESET_ALL
+
+# Functie om te controleren of er bingo is
 def check_bingo(team):
-    kaart = bingo_kaart_team1 if team == team1 else bingo_kaart_team2
-    # Controleer rijen
+    if team == team1:
+        kaart = bingo_kaart_team1
+    else:
+        kaart = bingo_kaart_team2
+
+    # Check rijen
     for rij in kaart:
-        if all(cell is not None for cell in rij):
+        bingo = True
+        for cel in rij:
+            if cel is None or not isinstance(cel, str) or Style.RESET_ALL not in cel:
+                bingo = False
+                break
+        if bingo:
             return True
-    # Controleer kolommen
+
+    # Check kolommen
     for kolom in range(4):
-        if all(kaart[rij][kolom] is not None for rij in range(4)):
+        bingo = True
+        for rij in range(4):
+            cel = kaart[rij][kolom]
+            if cel is None or not isinstance(cel, str) or Style.RESET_ALL not in cel:
+                bingo = False
+                break
+        if bingo:
             return True
-    # Controleer diagonalen
-    if all(kaart[i][i] is not None for i in range(4)) or all(kaart[i][3 - i] is not None for i in range(4)):
+
+    # Check diagonalen
+    diagonaal1 = True
+    diagonaal2 = True
+    for i in range(4):
+        if kaart[i][i] is None or Style.RESET_ALL not in kaart[i][i]:
+            diagonaal1 = False
+        if kaart[i][3 - i] is None or Style.RESET_ALL not in kaart[i][3 - i]:
+            diagonaal2 = False
+    if diagonaal1 or diagonaal2:
         return True
+
     return False
 
+# Functie om de winvoorwaarden te controleren
 def check_win_voorwaarden(team, score):
     if score["groene_ballen"] >= 3:
         print(Fore.GREEN + f"{team} heeft 3 groene ballen getrokken en wint het spel!")
@@ -95,6 +179,7 @@ def check_win_voorwaarden(team, score):
         return True
     return False
 
+# Functie om de verliesvoorwaarden te controleren
 def check_verlies_voorwaarden(team, score):
     if score["rode_ballen"] >= 3:
         print(Fore.RED + f"{team} heeft 3 rode ballen getrokken en verliest het spel!")
@@ -104,18 +189,30 @@ def check_verlies_voorwaarden(team, score):
         return True
     return False
 
+# Functie om de bingo-kaart van een team te tonen
 def toon_bingo_kaart(team):
-    kaart = bingo_kaart_team1 if team == team1 else bingo_kaart_team2
+    if team == team1:
+        kaart = bingo_kaart_team1
+    else:
+        kaart = bingo_kaart_team2
+
     print(f"\nBingo-kaart voor {team}:")
     for rij in kaart:
-        print(" | ".join(cell if cell is not None else " " for cell in rij))
+        regel = ""
+        for cel in rij:
+            if cel is not None:
+                regel += cel + " | "
+            else:
+                regel += " " + " | "
+        print(regel.strip(" | "))
 
+# Spel loop
 while game_running:
     ronde += 1
-    woord = random.choice(words)  # Kies een willekeurig woord uit de lijst
+    woord = random.choice(words)
     split_word = woord_splitter(woord)
     print(f'\nRonde {ronde}')
-    print(f'DEBUG: Het woord is "{woord}".')  # Debug-print om het woord te tonen
+    print(f'DEBUG: Het woord is "{woord}".')
     print(f'De eerste letter is: {Fore.GREEN + split_word[0] + Fore.RESET} _ _ _ _')
 
     huidig_team = team1 if beurt == 1 else team2
@@ -125,19 +222,18 @@ while game_running:
         while True:
             print(f'\nPoging {poging + 1} voor {huidig_team}:')
             raden = input('Raad het woord: ').lower()
-            if len(raden) == 5:  # Controleer of het woord precies 5 letters lang is
+            if len(raden) == 5:
                 break
             print(Fore.RED + "Het woord moet precies 5 letters lang zijn. Probeer opnieuw.")
 
         if raden == woord:
             print(Fore.GREEN + 'Gefeliciteerd! Je hebt het woord geraden!')
             huidig_score["goed_geraden"] += 1
-            huidig_score["fout_ballen"] = 0  # Reset fout geraden teller
+            huidig_score["fout_ballen"] = 0
 
-            # Grabbel 2 ballen
             for _ in range(2):
-                bal = grabbel_bal()
-                if bal is None:  # Als de ballenbak leeg is, stop het spel
+                bal = grabbel_bal(huidig_team)
+                if bal is None:
                     game_running = False
                     break
                 if bal == "groen":
@@ -150,15 +246,13 @@ while game_running:
                     update_bingo_kaart(huidig_team, bal)
                     print(f"{huidig_team} heeft een {bal} bal getrokken.")
 
-            # Toon bingo-kaart
             toon_bingo_kaart(huidig_team)
 
-            # Controleer win- en verliesvoorwaarden
             if check_win_voorwaarden(huidig_team, huidig_score) or check_verlies_voorwaarden(huidig_team, huidig_score):
                 game_running = False
                 break
 
-            beurt = 2 if beurt == 1 else 1  # Wissel van beurt
+            beurt = 2 if beurt == 1 else 1
             break
         else:
             print(kleur_letters(raden, woord))
@@ -167,6 +261,6 @@ while game_running:
         huidig_score["fout_ballen"] += 1
         if check_verlies_voorwaarden(huidig_team, huidig_score):
             game_running = False
-        beurt = 2 if beurt == 1 else 1  # Wissel van beurt
+        beurt = 2 if beurt == 1 else 1
 
 print('Bedankt voor het spelen!')
