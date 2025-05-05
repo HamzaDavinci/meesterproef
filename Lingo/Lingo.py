@@ -11,8 +11,18 @@ ronde = 0
 beurt = 1  # 1 voor Team 1, 2 voor Team 2
 
 # Score bijhouden
-team1_score = {"groene_ballen": 0, "rode_ballen": 0, "goed_geraden": 0, "fout_ballen": 0}
-team2_score = {"groene_ballen": 0, "rode_ballen": 0, "goed_geraden": 0, "fout_ballen": 0}
+team1_score = {
+    "groene_ballen": 0,
+    "rode_ballen": 0,
+    "goed_geraden": 0,
+    "fout_ballen": 0
+}
+team2_score = {
+    "groene_ballen": 0,
+    "rode_ballen": 0,
+    "goed_geraden": 0,
+    "fout_ballen": 0
+}
 
 # Bingo-kaarten genereren met even of oneven nummers
 def genereer_bingo_kaart(even=True):
@@ -29,7 +39,7 @@ def genereer_bingo_kaart(even=True):
         kaart.append(rij)
     return kaart
 
-# Pas deze 2 regels onder de functie toe:
+# als je de even aanpast verander je de lijst van ballen in de bingo lijst:
 bingo_kaart_team1 = genereer_bingo_kaart(even=True)
 bingo_kaart_team2 = genereer_bingo_kaart(even=False)
 
@@ -74,21 +84,29 @@ def kleur_letters(geraden_woord, correct_woord):
 
     gekleurd_woord = []
 
+    # Eerste pass: markeer juiste letters op de juiste plek (groen)
     for i in range(len(geraden_woord_lijst)):
-        if geraden_woord_lijst[i] == correct_woord_lijst[i]:
-            gekleurd_woord.append(Fore.GREEN + geraden_woord_lijst[i])
-            correct_woord_lijst[i] = None
-            geraden_woord_lijst[i] = None
-        else:
-            gekleurd_woord.append(Fore.RESET + geraden_woord_lijst[i])
+        letter_geraden = geraden_woord_lijst[i]
+        letter_correct = correct_woord_lijst[i]
 
+        if letter_geraden == letter_correct:
+            gekleurd_woord.append(Fore.GREEN + letter_geraden)
+            geraden_woord_lijst[i] = None
+            correct_woord_lijst[i] = None
+        else:
+            gekleurd_woord.append(Fore.RESET + letter_geraden)
+
+    # Tweede pass: markeer juiste letters op de verkeerde plek (geel)
     for i in range(len(geraden_woord_lijst)):
-        if geraden_woord_lijst[i] is not None and geraden_woord_lijst[i] in correct_woord_lijst:
-            index_in_correct = correct_woord_lijst.index(geraden_woord_lijst[i])
+        letter_geraden = geraden_woord_lijst[i]
+
+        if letter_geraden is not None and letter_geraden in correct_woord_lijst:
+            index_in_correct = correct_woord_lijst.index(letter_geraden)
             if correct_woord_lijst[index_in_correct] is not None:
-                gekleurd_woord[i] = Fore.YELLOW + geraden_woord_lijst[i]
+                gekleurd_woord[i] = Fore.YELLOW + letter_geraden
                 correct_woord_lijst[index_in_correct] = None
 
+                
     resultaat = ''
     for letter in gekleurd_woord:
         resultaat += letter
@@ -205,7 +223,7 @@ def toon_bingo_kaart(team):
             else:
                 regel += " " + " | "
         print(regel.strip(" | "))
-
+        
 # Spel loop
 while game_running:
     ronde += 1
