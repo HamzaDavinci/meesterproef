@@ -1,124 +1,120 @@
 BEGIN LingoSpel
 
-    INITIALISEER woordenlijst
-    INITIALISEER game_running = True
-    INITIALISEER ronde = 0
-    INITIALISEER beurt = 1  # 1 voor Team 1, 2 voor Team 2
+    INITIALISEER colorama
     
-    INITIALISEER team1_score met:
-        - groene_ballen = 0
-        - rode_ballen = 0
-        - goed_geraden = 0
-        - fout_ballen = 0
-        
-    INITIALISEER team2_score metzelfde structuur als team1_score
-    
-    FUNCTIE genereer_bingo_kaart(even):
-        GENEREER 16 unieke even/oneven nummers tussen 1-100
-        MAAK 4x4 raster met deze nummers
-        RETURN bingokaart
-        
-    GENEREER bingo_kaart_team1 = genereer_bingo_kaart(even=True)
-    GENEREER bingo_kaart_team2 = genereer_bingo_kaart(even=False)
-    
-    INITIALISEER ballenbak_team1 met:
-        - nummers van bingo_kaart_team1
-        - 3 groene ballen
-        - 3 rode ballen
-        
-    INITIALISEER ballenbak_team2 opzelfde wijze
-    
-    TOON 'Welkom bij Lingo'
-    VRAAG teamnamen aan beide teams
-    
-    FUNCTIE woord_splitter(woord):
-        SPLITS woord in individuele letters
-        RETURN lijst van letters
-        
-    FUNCTIE kleur_letters(geraden_woord, correct_woord):
-        # Eerste pass: markeer correcte letters op juiste positie (groen)
-        # Tweede pass: markeer correcte letters op verkeerde positie (geel)
-        RETURN gekleurd woord
-        
-    FUNCTIE grabbel_bal(team):
-        KIES willekeurige bal uit team's ballenbak
-        VERWIJDER bal uit ballenbak
-        RETURN bal
-        
-    FUNCTIE update_bingo_kaart(team, bal):
-        ZOEK bal op bingokaart
-        MARKEREN als gevonden (kleur cyan)
-        
-    FUNCTIE check_bingo(team):
-        CONTROLEER alle rijen, kolommen en diagonalen
-        RETURN True als volledige lijn gevonden
-        
-    FUNCTIE check_win_voorwaarden(team, score):
-        ALS score["groene_ballen"] >= 3 OF check_bingo(team) OF score["goed_geraden"] >= 10:
-            RETURN True
-        ANDERS:
-            RETURN False
-            
-    FUNCTIE check_verlies_voorwaarden(team, score):
-        ALS score["rode_ballen"] >= 3 OF score["fout_ballen"] >= 3:
-            RETURN True
-        ANDERS:
-            RETURN False
-            
-    FUNCTIE toon_bingo_kaart(team):
-        PRINT bingokaart van team met gemarkeerde nummers
-        
-    WHILE game_running DO
-        VERHOOG ronde met 1
-        KIES willekeurig woord uit woordenlijst
-        TOON eerste letter van woord
-        
-        STEL huidig_team in (team1 of team2)
-        STEL huidig_score in (team1_score of team2_score)
-        
-        FOR poging IN 1 TO 5 DO
-            VRAAG speler om woord te raden
-            CONTROLEER lengte (moet 5 letters zijn)
-            
-            ALS geraden woord == correct woord:
-                TOON succesbericht
-                VERHOOG goed_geraden teller
-                ZET fout_ballen teller op 0
-                
-                VOOR 2 keer:
-                    TREK bal uit ballenbak
-                    ALS bal is groen:
-                        VERHOOG groene_ballen teller
-                    ANDERS ALS bal is rood:
-                        VERHOOG rode_ballen teller
-                    ANDERS:
-                        UPDATE bingokaart
-                        
-                TOON bingokaart
-                
-                ALS check_win_voorwaarden OF check_verlies_voorwaarden WAAR:
-                    ZET game_running = False
-                    STOP loop
-                    
+    WHILE True DO
+        INITIALISEER game_running = True
+        INITIALISEER ronde = 0
+        INITIALISEER beurt = 1
+
+        INITIALISEER team1_score:
+            - groene_ballen = 0
+            - rode_ballen = 0
+            - goed_geraden = 0
+            - fout_ballen = 0
+
+        INITIALISEER team2_score op dezelfde manier
+
+        FUNCTIE genereer_bingo_kaart(even):
+            GENEREER 16 unieke even/oneven nummers tussen 1-99
+            VORM een 4x4 matrix met deze nummers (strings)
+            RETURN kaart
+
+        GENEREER bingo_kaart_team1 = genereer_bingo_kaart(even=True)
+        GENEREER bingo_kaart_team2 = genereer_bingo_kaart(even=False)
+
+        INITIALISEER ballenbak_team1 met nummers van bingo_kaart_team1
+        INITIALISEER ballenbak_team2 met nummers van bingo_kaart_team2
+
+        VOEG 3 'groen' en 3 'rood' ballen toe aan beide ballenbakken
+
+        TOON welkomsbericht
+        VRAAG teamnamen van team1 en team2
+
+        FUNCTIE woord_splitter(woord):
+            RETURN lijst van losse letters uit woord
+
+        FUNCTIE kleur_letters(geraden_woord, correct_woord):
+            VOOR elke letter op juiste positie: markeer als groen
+            VOOR juiste letter op verkeerde plek: markeer als geel
+            RETURN gekleurd woord (string met kleurcodes)
+
+        FUNCTIE grabbel_bal(team):
+            KIES en VERWIJDER willekeurige bal uit juiste ballenbak
+            ALS ballenbak leeg: geef melding en RETURN None
+            RETURN bal
+
+        FUNCTIE update_bingo_kaart(team, bal):
+            VIND bal op juiste bingo_kaart
+            MARKEREN met cyan kleur
+
+        FUNCTIE check_bingo(team):
+            CONTROLEER of een volledige rij, kolom of diagonaal alle waarden gemarkeerd zijn (kleur cyan)
+            RETURN True als bingo, anders False
+
+        FUNCTIE check_win_voorwaarden(team, score):
+            ALS score["groene_ballen"] ≥ 3 OF check_bingo(team) OF score["goed_geraden"] ≥ 10:
+                TOON winstbericht
+                RETURN True
+            ANDERS: RETURN False
+
+        FUNCTIE check_verlies_voorwaarden(team, score):
+            ALS score["rode_ballen"] ≥ 3 OF score["fout_ballen"] ≥ 3:
+                TOON verliesbericht
+                RETURN True
+            ANDERS: RETURN False
+
+        FUNCTIE toon_bingo_kaart(team):
+            PRINT bingo_kaart in 4x4 formaat met markeringen
+
+        WHILE game_running DO
+            VERHOOG ronde met 1
+            SELECTEER willekeurig woord uit woordenlijst
+            TOON eerste letter van woord
+
+            BEPAAL huidig_team en huidig_score
+
+            FOR poging IN 1 TO 5 DO
+                VRAAG speler om woord van 5 letters
+                VALIDATE lengte
+
+                ALS geraden woord == correct woord:
+                    TOON succesbericht
+                    VERHOOG goed_geraden
+                    RESET fout_ballen
+
+                    HERHAAL 2x:
+                        TREK bal via grabbel_bal
+                        ALS bal == "groen": verhoog groene_ballen
+                        ALS bal == "rood": verhoog rode_ballen, breek grabbel loop
+                        ANDERS: update_bingo_kaart
+
+                    TOON bingo-kaart
+
+                    ALS check_win_voorwaarden OF check_verlies_voorwaarden:
+                        game_running = False
+                        BREAK
+
+                    WISSEL beurt
+                    BREAK (poging loop)
+
+                ANDERS:
+                    TOON feedback met kleur_letters
+
+            END FOR
+
+            ALS alle pogingen op zijn:
+                TOON foutbericht
+                VERHOOG fout_ballen
+                ALS check_verlies_voorwaarden:
+                    game_running = False
                 WISSEL beurt
-                STOP pogingen loop
-                
-            ANDERS:
-                TOON gekleurd feedbackwoord
-                
-        END FOR
-        
-        ALS alle pogingen opgebruikt:
-            TOON foutmelding
-            VERHOOG fout_ballen teller
-            
-            ALS check_verlies_voorwaarden WAAR:
-                ZET game_running = False
-                
-            WISSEL beurt
-            
-    END WHILE
-    
-    TOON 'Bedankt voor het spelen!'
-    
+
+        END WHILE
+
+        TOON "Bedankt voor het spelen!"
+
+        VRAAG of speler opnieuw wil spelen
+        ALS antwoord != 'ja': BREAK
+
 END LingoSpel
